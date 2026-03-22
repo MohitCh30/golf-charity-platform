@@ -1,177 +1,195 @@
-# Supabase CLI
+# GolfGive
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=develop)](https://coveralls.io/github/supabase/cli?branch=develop) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A subscription-based golf performance tracking platform with monthly prize draws and integrated charity fundraising. Built with Next.js 16, Supabase, and TypeScript.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+**Live:** [golf-charity-platform-lilac.vercel.app](https://golf-charity-platform-lilac.vercel.app)
 
-This repository contains all the functionality for Supabase CLI.
+---
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## Screenshots
 
-## Getting started
+<img width="1530" height="623" alt="image" src="https://github.com/user-attachments/assets/59e28e81-6fae-4e29-b6e9-2bed9f810ee7" />
 
-### Install the CLI
+ Homepage 
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+<img width="1244" height="702" alt="image" src="https://github.com/user-attachments/assets/273c0faa-1c6e-4ce2-80dc-23dfba5cb381" />
+
+
+Scores Page ·
+
+<img width="1332" height="862" alt="image" src="https://github.com/user-attachments/assets/a838092b-3fb9-4324-a502-8666d355f0c3" />
+
+Admin Dashboard · 
+
+<img width="1349" height="605" alt="image" src="https://github.com/user-attachments/assets/71781483-44d0-437c-ae8b-88fe7e8496b7" />
+
+Draw Management · 
+
+<img width="440" height="701" alt="image" src="https://github.com/user-attachments/assets/1125f42f-2d4d-4578-ac7e-1492a402d936" />
+
+Welcome Screen
+
+
+## What It Does
+
+Users subscribe monthly or yearly, log their golf scores in Stableford format, and automatically enter monthly prize draws. A portion of every subscription goes to a charity of the user's choice. Admins run draw simulations, publish results, and verify winners — all from a dedicated admin panel.
+
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16.2.1 — App Router, TypeScript |
+| Styling | Tailwind CSS v4 + ShadCN UI (Radix) |
+| Database + Auth | Supabase (PostgreSQL, row-level auth) |
+| Payments | Mock payment service (Stripe is invite-only in India) |
+| Deployment | Vercel |
+| Testing | Playwright — 65 tests |
+
+---
+
+## Features
+
+### User
+- 3-step signup with charity selection and plan choice
+- Monthly (₹9.99) and yearly (₹99.99) subscription plans
+- Score entry in Stableford format (1–45), up to 5 scores retained on a rolling basis
+- Scores displayed newest first, oldest auto-replaced on the 6th entry
+- Dashboard showing subscription status, scores, charity contribution, draw participation, and winnings
+- Winner proof upload
+
+### Draw Engine
+- Two draw modes: random lottery and algorithmic (weighted by score frequency across all users)
+- Prize pool split: 5-match 40% (jackpot, rolls over), 4-match 35%, 3-match 25%
+- Multiple winners in the same tier split the prize equally
+- Admin runs simulation first, previews results, then publishes
+- Draw history tracked per month
+
+### Charity
+- Select a charity at signup
+- Minimum 10% of subscription fee directed to chosen charity
+- Charity listing page with search and filter
+- Individual charity profile pages
+- Featured charities spotlight
+
+### Admin Panel
+- User management with subscription status
+- Full draw management — simulate, preview, publish
+- Winner verification — approve or reject submissions
+- Charity management view
+- Real-time data from Supabase
+
+---
+
+## Architecture
+
+```
+src/
+  app/
+    auth/           — Signup (3-step), login, forgot password
+    dashboard/      — User dashboard, scores, subscription, winners
+    admin/          — Admin dashboard, draw management, winner verification
+    charities/      — Public charity listing and individual profiles
+  lib/
+    supabase/       — Server and client Supabase helpers
+    draw-engine/    — Draw logic, prize pool calculation, winner checking
+    payments/       — Mock payment service
+  proxy.ts          — Route protection middleware (auth + subscription gating)
+```
+
+### Key Architectural Decisions
+
+**`createAdminClient()` for all DB queries** — bypasses RLS using the service role key server-side. `createClient()` is used only for `supabase.auth.getUser()`. This pattern eliminates all RLS-related 500 errors.
+
+**Route handlers over server actions** — Next.js 16 with Turbopack has known issues with server actions. All form submissions use `route.ts` handlers.
+
+**`proxy.ts` not `middleware.ts`** — custom export name `proxy()` required by the project's Next.js 16 configuration.
+
+---
+
+## Database Schema
+
+| Table | Purpose |
+|---|---|
+| `profiles` | Extended user data, role (subscriber/admin), charity selection |
+| `subscriptions` | Plan, status, start/end dates, charity amount |
+| `scores` | Up to 5 per user, rolling — oldest auto-replaced via DB trigger |
+| `charities` | Charity listings, featured flag, active flag |
+| `draws` | Monthly draw records, winning numbers, prize amounts, status |
+| `draw_entries` | All participant records per draw |
+| `winners` | Match type, prize amount, verification and payment status |
+
+---
+
+## Local Setup
 
 ```bash
-npm i supabase --save-dev
+git clone https://github.com/MohitCh30/golf-charity-platform
+cd golf-charity-platform
+npm install
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+Create `.env.local`:
 
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+MOCK_MONTHLY_PRICE_ID=mock_monthly_001
+MOCK_YEARLY_PRICE_ID=mock_yearly_001
+MOCK_MONTHLY_AMOUNT=999
+MOCK_YEARLY_AMOUNT=9999
 ```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
 
 ```bash
-supabase bootstrap
+npm run dev
 ```
 
-Or using npx:
+---
+
+## Test Credentials
+
+| Role | Email | Password |
+|---|---|---|
+| Subscriber | ankit@gmail.com | (set during signup) |
+| Admin | Set `role = 'admin'` in profiles table for any user |
+
+To create an admin: Supabase dashboard → Table Editor → profiles → find user row → set `role` to `admin`.
+
+---
+
+## Running Tests
 
 ```bash
-npx supabase bootstrap
+npx playwright test
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+65 tests covering signup flow, login, score entry, subscription, admin panel, and journey audits.
 
-## Docs
+---
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+## Environment Notes
 
-## Breaking changes
+- Email confirmation is disabled in Supabase — users are created and immediately signed in
+- Stripe is invite-only in India — a mock payment service simulates subscription creation with an 800ms delay and 10% failure rate
+- Built on Next.js 16.2.1 which launched the same day development began
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+---
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+## Future Scope
 
-## Developing
+- Email notifications for draw results and winner alerts
+- Mobile navigation hamburger menu
+- Individual charity event pages (upcoming golf days)
+- Admin UI for adding and editing charities directly
+- Cancellation and renewal flows with user-facing controls
+- Independent donation option not tied to subscription
+- Multi-country support with currency switching
 
-To run from source:
+---
 
-```sh
-# Go >= 1.22
-go run . help
-```
+## Developer Notes
+
+Built in 2 days as a full-stack challenge. Next.js 16.2.1 launched the same day development started. Stripe is invite-only in India so a mock payment service was implemented. All core flows — auth, scores, draws, charity selection, admin panel — are functional end to end.
