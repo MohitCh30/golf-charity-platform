@@ -81,8 +81,13 @@ test.describe('Signup Flow', () => {
     await page.click('button[type="submit"]')
     console.log('✓ Signup form submitted')
 
-    // Wait for redirect to dashboard
-    console.log('Waiting for redirect to dashboard...')
+    // Wait for redirect to welcome page (new users see welcome first)
+    console.log('Waiting for redirect to welcome page...')
+    await expect(page).toHaveURL(/\/auth\/welcome/, { timeout: 15000 })
+    console.log('✓ Redirected to welcome page')
+
+    // Click continue to dashboard
+    await page.click('button:has-text("Go to My Dashboard")')
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
     console.log('✓ Redirected to dashboard')
 

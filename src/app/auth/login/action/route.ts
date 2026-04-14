@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
@@ -26,7 +26,8 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: profile } = await supabase
+    const adminClient = await createAdminClient()
+    const { data: profile } = await adminClient
       .from('profiles')
       .select('subscriptions(status, end_date)')
       .eq('id', data.user.id)
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     if (activeSub) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     } else {
-      return NextResponse.redirect(new URL('/dashboard/subscribe', request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   } catch (error) {
     console.error('Login error:', error)

@@ -47,7 +47,7 @@ export default async function SignupPage({
                 id="fullName"
                 name="fullName"
                 type="text"
-                placeholder="Alex Thompson"
+                
                 autoComplete="name"
                 required
                 className="h-11"
@@ -61,7 +61,7 @@ export default async function SignupPage({
                 id="email"
                 name="email"
                 type="email"
-                placeholder="alex@example.com"
+                
                 autoComplete="email"
                 required
                 className="h-11"
@@ -74,20 +74,20 @@ export default async function SignupPage({
               <PasswordInput
                 id="password"
                 name="password"
-                placeholder="Create a secure password"
+                
                 autoComplete="new-password"
                 minLength={6}
                 required
                 className="h-11"
               />
             </div>
-            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 text-base font-medium">
+            <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 h-11 text-base font-medium">
               Continue
             </Button>
           </form>
           <div className="mt-6 text-center text-sm">
             <span className="text-slate-600">Already a member? </span>
-            <Link href="/auth/login" className="text-emerald-600 hover:text-emerald-700 font-medium">
+            <Link href="/auth/login" className="text-amber-600 hover:text-amber-700 font-medium">
               Sign in
             </Link>
           </div>
@@ -138,7 +138,7 @@ export default async function SignupPage({
               </label>
             ))}
             <div className="pt-2">
-              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 text-base font-medium">
+              <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 h-11 text-base font-medium">
                 Continue
               </Button>
             </div>
@@ -169,6 +169,7 @@ export default async function SignupPage({
         <CardContent>
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              {error === 'payment_failed' && 'Payment failed. Please try again.'}
               {error === 'signup_failed' && 'Failed to create account. Please try again.'}
               {error === 'subscription_failed' && 'Failed to create subscription. Please try again.'}
               {error === 'server_error' && 'Something went wrong. Please try again.'}
@@ -251,7 +252,7 @@ export default async function SignupPage({
               </div>
             </div>
             
-            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base font-medium">
+            <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 h-12 text-base font-medium">
               Complete Signup
             </Button>
           </form>

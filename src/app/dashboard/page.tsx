@@ -1,8 +1,9 @@
-import { getUser, getUserProfile, getUserScores, getUserCharity, getUserDrawEntries, getUserWinnings, getActiveSubscription, getFeaturedCharities } from '@/lib/supabase/server'
+import { getUser, getUserProfile, getUserScores, getUserCharity, getUserDrawEntries, getUserWinnings, getActiveSubscription, getFeaturedCharities, getUserTotalDonated } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { WinnerProofUpload } from './WinnerProofUpload'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -61,7 +62,9 @@ export default async function DashboardPage() {
     getFeaturedCharities()
   ])
   
-  const isSubscribed = activeSubscription && new Date(activeSubscription.end_date) >= new Date()
+  const isSubscribed = !!activeSubscription && 
+    activeSubscription.status === 'active' && 
+    new Date(activeSubscription.end_date) >= new Date()
   
   const totalWinnings = isSubscribed ? 
     (await getUserWinnings(user.id)).reduce((sum: number, w: { prize_amount_cents: number }) => sum + w.prize_amount_cents, 0) : 0
@@ -175,6 +178,7 @@ export default async function DashboardPage() {
   const charityData = await getUserCharity(user.id)
   const drawEntries = await getUserDrawEntries(user.id)
   const winnings = await getUserWinnings(user.id)
+  const totalDonated = await getUserTotalDonated(user.id)
   
   const pendingWinnings = winnings
     .filter((w: { payment_status: string }) => w.payment_status === 'pending')
@@ -186,6 +190,8 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold text-slate-900">Welcome back, {profile?.full_name?.split(' ')[0] || user.email?.split('@')[0]}!</h1>
         <p className="text-slate-600 mt-1">Track your scores and make a difference</p>
       </div>
+
+      <WinnerProofUpload winnings={winnings} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -330,7 +336,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg">
                     <p className="text-sm text-slate-500">Total Donated</p>
-                    <p className="text-lg font-semibold text-amber-600">₹0.00</p>
+                    <p className="text-lg font-semibold text-amber-600">₹{(totalDonated / 100).toFixed(2)}</p>
                   </div>
                 </div>
               </div>

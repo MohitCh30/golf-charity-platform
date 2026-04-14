@@ -1,8 +1,21 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { getUser, getActiveSubscription } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-export default function SubscribePage() {
+export default async function SubscribePage() {
+  const user = await getUser()
+  
+  if (!user) {
+    redirect('/auth/login')
+  }
+
+  const subscription = await getActiveSubscription(user.id)
+  
+  if (subscription) {
+    redirect('/dashboard')
+  }
   return (
     <div className="max-w-2xl mx-auto py-12">
       <Card>
@@ -14,7 +27,7 @@ export default function SubscribePage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link href="/auth/signup?step=3" className="block">
+            <Link href="/dashboard/upgrade" className="block">
               <div className="p-6 bg-amber-50 rounded-lg border-2 border-amber-200 hover:border-amber-400 transition-all h-full">
                 <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center mb-4">
                   <svg className="w-6 h-6 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">

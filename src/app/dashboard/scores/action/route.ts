@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
@@ -10,6 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const adminClient = await createAdminClient()
     const formData = await request.formData()
     const score = parseInt(formData.get('score') as string)
     const playedDate = formData.get('playedDate') as string
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
     const scoreId = formData.get('scoreId') as string
 
     if (action === 'delete' && scoreId) {
-      const { error } = await supabase
+      const { error } = await adminClient
         .from('scores')
         .delete()
         .eq('id', scoreId)
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Date is required' }, { status: 400 })
       }
 
-      const { error } = await supabase
+      const { error } = await adminClient
         .from('scores')
         .update({ score, played_date: playedDate })
         .eq('id', scoreId)
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Date is required' }, { status: 400 })
     }
 
-    const { data: existingScores, error: fetchError } = await supabase
+    const { data: existingScores, error: fetchError } = await adminClient
       .from('scores')
       .select('id, played_date')
       .eq('user_id', user.id)
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     }
 
     if (existingScores && existingScores.length >= 5) {
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await adminClient
         .from('scores')
         .delete()
         .eq('id', existingScores[existingScores.length - 1].id)
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const { error: insertError } = await supabase
+    const { error: insertError } = await adminClient
       .from('scores')
       .insert({
         user_id: user.id,

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createAdminClient, getUser } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { WinnerVerificationList } from './WinnerVerificationList'
 
 function formatCurrency(cents: number) {
   return `₹${(cents / 100).toFixed(2)}`
@@ -21,7 +22,7 @@ export default async function AdminPage() {
   if (!user) redirect('/auth/login')
 
   const supabase = await createAdminClient()
-  
+
   const { data: profiles } = await supabase
     .from('profiles')
     .select('*, subscriptions(*)')
@@ -43,12 +44,12 @@ export default async function AdminPage() {
     .order('draw_date', { ascending: false })
 
   const totalUsers = profiles?.length || 0
-  const activeSubscribers = profiles?.filter(p => 
-    p.subscriptions?.some((s: { status: string; end_date: string }) => 
+  const activeSubscribers = profiles?.filter(p =>
+    p.subscriptions?.some((s: { status: string; end_date: string }) =>
       s.status === 'active' && new Date(s.end_date) >= new Date()
     )
   ).length || 0
-  
+
   const totalPrizePool = winners?.reduce((sum: number, w: { prize_amount_cents: number }) => sum + w.prize_amount_cents, 0) || 0
   const pendingVerifications = winners?.filter((w: { verification_status: string }) => w.verification_status === 'pending').length || 0
 
@@ -199,25 +200,7 @@ export default async function AdminPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {pendingWinners.map((winner: { id: string; user_id: string; match_type: string; prize_amount_cents: number; verification_status: string }) => (
-                <div key={winner.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
-                  <div>
-                    <p className="font-medium text-white">
-                      {winner.match_type === '5_match' ? '5 Numbers' : 
-                       winner.match_type === '4_match' ? '4 Numbers' : '3 Numbers'}
-                    </p>
-                    <p className="text-sm text-amber-400">{formatCurrency(winner.prize_amount_cents)}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">Pending</Badge>
-                  </div>
-                </div>
-              ))}
-              {pendingWinners.length === 0 && (
-                <p className="text-center text-slate-500 py-8">No pending verifications</p>
-              )}
-            </div>
+            <WinnerVerificationList winners={pendingWinners} />
           </CardContent>
         </Card>
 
@@ -243,11 +226,11 @@ export default async function AdminPage() {
                       </p>
                     )}
                   </div>
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className={
-                      draw.status === 'published' ? 'bg-green-500/20 text-green-400' : 
-                      draw.status === 'simulation' ? 'bg-yellow-500/20 text-yellow-400' : 
+                      draw.status === 'published' ? 'bg-green-500/20 text-green-400' :
+                      draw.status === 'simulation' ? 'bg-yellow-500/20 text-yellow-400' :
                       'bg-slate-700 text-slate-400'
                     }
                   >

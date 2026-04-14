@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { getFeaturedCharities } from '@/lib/supabase/server'
+import { getUser } from '@/lib/supabase/server'
 
 export default async function HomePage() {
   const charities = await getFeaturedCharities()
+  const user = await getUser()
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -18,12 +20,25 @@ export default async function HomePage() {
               <span className="font-bold text-white text-lg">GolfGive</span>
             </Link>
             <nav className="flex items-center gap-6">
-              <Link href="/auth/login" className="text-sm text-slate-300 hover:text-white transition-colors">
-                Sign In
-              </Link>
-              <Link href="/auth/signup" className="text-sm font-medium bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-lg transition-colors">
-                Get Started
-              </Link>
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="text-sm text-slate-300 hover:text-white transition-colors">
+                    Dashboard
+                  </Link>
+                  <Link href="/dashboard" className="text-sm font-medium bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-lg transition-colors">
+                    My Account
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="text-sm text-slate-300 hover:text-white transition-colors">
+                    Sign In
+                  </Link>
+                  <Link href="/auth/signup" className="text-sm font-medium bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-lg transition-colors">
+                    Get Started
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
         </div>
@@ -45,13 +60,19 @@ export default async function HomePage() {
               Win prizes.
             </h1>
             <p className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl">
-              A subscription platform where every game you play contributes to causes that matter. 
+              A subscription platform where every game you play contributes to causes that matter.
               Enter scores, participate in monthly draws, and make a real difference—all while having a chance to win.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Link href="/auth/signup" className="inline-flex items-center justify-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-8 py-4 rounded-lg transition-all hover:scale-105">
-                Start Playing
-              </Link>
+              {user ? (
+                <Link href="/dashboard" className="inline-flex items-center justify-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-8 py-4 rounded-lg transition-all hover:scale-105">
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <Link href="/auth/signup" className="inline-flex items-center justify-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-8 py-4 rounded-lg transition-all hover:scale-105">
+                  Start Playing
+                </Link>
+              )}
               <Link href="#charities" className="inline-flex items-center justify-center border border-slate-600 hover:border-slate-500 text-white font-semibold px-8 py-4 rounded-lg transition-colors">
                 Explore Charities
               </Link>
@@ -135,7 +156,7 @@ export default async function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Children's Education Fund</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">Children&apos;s Education Fund</h3>
                   <p className="text-slate-400">Providing quality education to underprivileged children across India.</p>
                 </div>
                 <div className="p-6 rounded-2xl bg-slate-800 border border-slate-700">
@@ -159,6 +180,13 @@ export default async function HomePage() {
               </>
             )}
           </div>
+          {!user && (
+            <div className="text-center mt-12">
+              <Link href="/auth/signup" className="inline-flex items-center justify-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-8 py-4 rounded-lg transition-all hover:scale-105">
+                Support a Charity Today
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -201,8 +229,8 @@ export default async function HomePage() {
           </div>
           <div className="mt-12 text-center">
             <p className="text-slate-400 max-w-2xl mx-auto">
-              Your scores generate random numbers for each monthly draw. 
-              Match more numbers to win a bigger share of the prize pool. 
+              Your scores generate random numbers for each monthly draw.
+              Match more numbers to win a bigger share of the prize pool.
               Unclaimed jackpots roll over to the next draw!
             </p>
           </div>
@@ -221,8 +249,17 @@ export default async function HomePage() {
               <span className="font-bold text-white">GolfGive</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-400">
-              <Link href="/auth/login" className="hover:text-white transition-colors">Sign In</Link>
-              <Link href="/auth/signup" className="hover:text-white transition-colors">Sign Up</Link>
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
+                  <Link href="/charities" className="hover:text-white transition-colors">Charities</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="hover:text-white transition-colors">Sign In</Link>
+                  <Link href="/auth/signup" className="hover:text-white transition-colors">Sign Up</Link>
+                </>
+              )}
             </div>
             <p className="text-sm text-slate-500">
               Play games. Help others. Win prizes.

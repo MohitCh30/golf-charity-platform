@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createPaymentIntent, confirmPayment } from '@/lib/payments/mock-payment'
 
 export async function POST(request: Request) {
   try {
@@ -106,7 +107,20 @@ export async function POST(request: Request) {
     const subscription_cents = PRICES[plan] || 999
     const charity_cents = Math.round(subscription_cents * (contributionPercent / 100))
 
-    const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+    const paymentIntent = await createPaymentIntent(subscription_cents, {
+      plan,
+      charityId: charityId || '',
+      userEmail: session.email,
+    })
+    const paymentResult = await confirmPayment(paymentIntent.id)
+
+    if (!paymentResult.success || !paymentResult.transaction_id) {
+      return NextResponse.redirect(
+        new URL('/auth/signup?step=3&error=payment_failed', request.url)
+      )
+    }
+
+    const transactionId = paymentResult.transaction_id
 
     const startDate = new Date()
     const endDate = new Date()

@@ -1,8 +1,6 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -31,7 +29,6 @@ export default function WelcomePage() {
   }, [])
 
   const formatAmount = (cents: number) => `₹${(cents / 100).toFixed(2)}`
-
   const planAmount = sessionData?.plan === 'yearly' ? 9999 : 999
   const planLabel = sessionData?.plan === 'yearly' ? 'Yearly' : 'Monthly'
   const planPeriod = sessionData?.plan === 'yearly' ? '/year' : '/month'
@@ -56,6 +53,7 @@ export default function WelcomePage() {
           </svg>
         </div>
         <CardTitle className="text-2xl font-bold text-slate-900">Welcome to GolfGive!</CardTitle>
+        <p className="text-slate-500 text-sm mt-1">Your account is ready. Let's start playing.</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="p-4 bg-slate-50 rounded-lg space-y-3">
@@ -74,7 +72,6 @@ export default function WelcomePage() {
             </div>
           )}
         </div>
-
         <div className="border-t border-slate-200 pt-4 space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-slate-600">Plan</span>
@@ -93,7 +90,6 @@ export default function WelcomePage() {
             <span className="font-bold text-amber-600">{formatAmount(contributionAmount)}/mo</span>
           </div>
         </div>
-
         <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
           <div className="flex items-center gap-2 text-amber-700 text-sm">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,7 +98,6 @@ export default function WelcomePage() {
             <span>Your subscription is active. Start entering scores!</span>
           </div>
         </div>
-
         <Button
           onClick={() => router.push('/dashboard')}
           className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 h-12 text-base font-medium"

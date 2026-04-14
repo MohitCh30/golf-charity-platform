@@ -18,7 +18,7 @@ export async function GET() {
       .like('draw_date', `${currentMonth}%`)
       .order('draw_date', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     return NextResponse.json({
       draws: draws || [],
