@@ -14,8 +14,6 @@ export default async function LoginPage({
     params.error === 'invalid_credentials' ||
     params.error === 'missing_fields' ||
     params.error === 'server_error' ||
-    params.error === 'oauth_start_failed' ||
-    params.error === 'oauth_provider_invalid' ||
     params.error === 'callback_failed'
 
   const errorMessage =
@@ -73,30 +71,6 @@ export default async function LoginPage({
           <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 h-11 text-base font-medium">
             Sign In
           </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-slate-200" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-slate-500">Or continue with</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <a
-              href="/auth/login/oauth?provider=google"
-              className="inline-flex items-center justify-center h-11 rounded-md border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
-            >
-              Continue with Google
-            </a>
-            <a
-              href="/auth/login/oauth?provider=github"
-              className="inline-flex items-center justify-center h-11 rounded-md border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
-            >
-              Continue with GitHub
-            </a>
-          </div>
         </form>
         <div className="mt-6 text-center text-sm">
           <span className="text-slate-600">Don&apos;t have an account? </span>
