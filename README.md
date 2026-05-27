@@ -4,31 +4,6 @@ A subscription-driven web application combining golf performance tracking, chari
 
 **Live:** https://golf-charity-platform-lilac.vercel.app
 
-Note: Hosted on Supabase free tier — the database pauses after ~1 week of inactivity. If the live site shows a connection error, go to supabase.com/dashboard and hit "Restore project". Takes ~2 minutes.
-
----
-
-## PRD Compliance Summary
-
-| Feature | PRD Required | Built | Notes |
-|---|---|---|---|
-| Subscription engine | Monthly + yearly plans, payment gateway, access control | ✅ Built | Mock payment service (Stripe invite-only in India). 800ms delay, 10% random failure rate. Real Stripe can be swapped in. |
-| Score management | 1–45 Stableford, 5-score rolling limit, date required, newest first | ✅ Built | Rolling limit enforced in route handler (deletes oldest before insert). Scores displayed newest first. |
-| Draw engine | Random + algorithmic draw, simulation mode, monthly cadence | ✅ Built | Algorithmic draw weighted by score frequency. Simulation runs without publishing. |
-| Prize pool logic | 40% jackpot (rollover), 35% four-match, 25% three-match, split on ties | ✅ Built | Enforced in `src/lib/draw-engine/index.ts`. Jackpot rollover implemented. |
-| Charity system | Charity selection at signup, 10% minimum contribution, listing + profiles | ✅ Built | Charity listing with search/filter. Individual profiles. Featured section. Contribution % fixed at 10% — user cannot adjust. |
-| Winner verification | Proof upload, admin approve/reject, pending → paid states | ✅ Built | Upload UI on dashboard. Admin verification list. Payment state tracked. |
-| User dashboard | Subscription status, score entry, charity info, draw participation, winnings | ✅ Built | All modules present. |
-| Admin dashboard | User management, draw management, charity management, winner verification | ✅ Partial | User management and draw management fully built. Charity management is read-only — no add/edit/delete UI for charities in admin panel. |
-| Auth | Secure login, signup, forgot password, session gating | ✅ Built | Email/password. OAuth routes exist (Google/GitHub) but not enabled by default. Email confirmation disabled. |
-| UI/UX | Modern, emotion-driven, not a traditional golf site, mobile-first | ✅ Built | Amber + slate palette, ShadCN Nova, Tailwind v4. Avoids golf clichés. |
-| Email notifications | Draw results, winner alerts, system updates | ❌ Not built | Listed as future scope. |
-| Independent donations | Donation not tied to subscription | ❌ Not built | Listed as future scope. |
-| Charity % editing | User can increase contribution above 10% | ❌ Not built | Fixed at 10%. |
-| Subscription cancellation/renewal UI | User-facing cancel and renewal controls | ❌ Not built | Status visible but no self-service cancel flow. |
-| Mobile hamburger nav | Responsive navigation menu | ❌ Not built | Layout is responsive but no hamburger menu component. |
-| Reports & analytics | Total users, prize pool, charity totals, draw stats | ❌ Partial | Basic counts visible in admin. No dedicated analytics page. |
-
 ---
 
 ## Tech Stack
@@ -138,8 +113,6 @@ npx tsc --noEmit
 ---
 
 ## Known Gaps
-
-PRD items that are not built:
 
 - Email notifications (draw results, winner alerts, system updates)
 - Independent donation option not tied to subscription
