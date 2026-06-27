@@ -205,7 +205,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-slate-600">
-              Renews {formatDate(activeSubscription.end_date)}
+              Renews {formatDate(activeSubscription?.end_date ?? 'N/A')}
             </p>
           </CardContent>
         </Card>
