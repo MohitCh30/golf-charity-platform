@@ -137,6 +137,23 @@ export async function getUserWinnings(userId: string) {
   return data || []
 }
 
+export async function getLatestPublishedDraw() {
+  const supabase = await createAdminClient()
+  const { data, error } = await supabase
+    .from('draws')
+    .select('*')
+    .eq('status', 'published')
+    .order('draw_date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) {
+    console.error('Error fetching latest published draw:', error)
+    return null
+  }
+  return data ? { ...data, winning_numbers: Array.isArray(data.winning_numbers) ? data.winning_numbers : [] } : null
+}
+
 export async function getFeaturedCharities() {
   const supabase = await createAdminClient()
   const { data } = await supabase

@@ -1,4 +1,4 @@
-import { getUser, getUserProfile, getUserScores, getUserCharity, getUserDrawEntries, getUserWinnings, getActiveSubscription, getFeaturedCharities, getUserTotalDonated } from '@/lib/supabase/server'
+import { getUser, getUserProfile, getUserScores, getUserCharity, getUserDrawEntries, getUserWinnings, getActiveSubscription, getFeaturedCharities, getUserTotalDonated, getLatestPublishedDraw } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -65,10 +65,10 @@ export default async function DashboardPage() {
   const isAdmin = profile?.role === 'admin'
   const isSubscribed = isAdmin || (!!activeSubscription &&
     activeSubscription?.status === 'active' && new Date(activeSubscription?.end_date) >= new Date())
+  const daysRemaining = activeSubscription
+    ? Math.ceil((new Date(activeSubscription.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    : null
   
-  const totalWinnings = isSubscribed ? 
-    (await getUserWinnings(user.id)).reduce((sum: number, w: { prize_amount_cents: number }) => sum + w.prize_amount_cents, 0) : 0
-
   if (!isSubscribed) {
     return (
       <div className="space-y-8">
@@ -174,15 +174,28 @@ export default async function DashboardPage() {
     )
   }
 
-  const scores = await getUserScores(user.id)
-  const charityData = await getUserCharity(user.id)
-  const drawEntries = await getUserDrawEntries(user.id)
-  const winnings = await getUserWinnings(user.id)
-  const totalDonated = await getUserTotalDonated(user.id)
+  const [scores, charityData, drawEntries, winnings, totalDonated, latestPublishedDraw] = await Promise.all([
+    getUserScores(user.id),
+    getUserCharity(user.id),
+    getUserDrawEntries(user.id),
+    getUserWinnings(user.id),
+    getUserTotalDonated(user.id),
+    getLatestPublishedDraw()
+  ])
   
   const pendingWinnings = winnings
     .filter((w: { payment_status: string }) => w.payment_status === 'pending')
     .reduce((sum: number, w: { prize_amount_cents: number }) => sum + w.prize_amount_cents, 0)
+  const totalWinnings = winnings.reduce((sum: number, w: { prize_amount_cents: number }) => sum + w.prize_amount_cents, 0)
+  const winningNumbers = latestPublishedDraw?.winning_numbers ?? []
+  const scoreMatches = scores.map((score: { score: number }) => ({
+    score: score.score,
+    matched: winningNumbers.includes(score.score)
+  }))
+  const latestDrawWin = latestPublishedDraw
+    ? winnings.find((w: { draw_id?: string }) => w.draw_id === latestPublishedDraw.id)
+    : null
+  const matchedCount = scoreMatches.filter((score: { matched: boolean }) => score.matched).length
 
   return (
     <div className="space-y-8">
@@ -205,7 +218,9 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-slate-600">
-              Renews {formatDate(activeSubscription?.end_date ?? 'N/A')}
+              {activeSubscription
+                ? daysRemaining === 0 ? 'Expires today' : `${daysRemaining} days remaining`
+                : isAdmin ? 'Admin account' : 'No active subscription'}
             </p>
           </CardContent>
         </Card>
@@ -258,6 +273,65 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Latest Draw Results</CardTitle>
+          <CardDescription>
+            {latestPublishedDraw ? `Published ${formatDate(latestPublishedDraw.draw_date)}` : 'No published draw yet'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {latestPublishedDraw ? (
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">Winning numbers</p>
+                  <div className="flex flex-wrap gap-2">
+                    {winningNumbers.map((num: number) => (
+                      <Badge key={num} className="bg-slate-900 text-white hover:bg-slate-900">
+                        {num}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">Your scores</p>
+                  {scoreMatches.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {scoreMatches.map((score: { score: number; matched: boolean }, index: number) => (
+                        <Badge
+                          key={`${score.score}-${index}`}
+                          className={score.matched
+                            ? 'bg-amber-500 text-slate-900 hover:bg-amber-500'
+                            : 'bg-slate-200 text-slate-700 hover:bg-slate-200'}
+                        >
+                          {score.score}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">No scores recorded for comparison.</p>
+                  )}
+                </div>
+              </div>
+
+              {latestDrawWin ? (
+                <p className="text-sm font-semibold text-amber-600">
+                  You won {formatCurrency(latestDrawWin.prize_amount_cents)}
+                </p>
+              ) : (
+                <p className="text-sm text-slate-600">
+                  You matched {matchedCount} of 5 numbers
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">Results will appear here after the next published draw.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
