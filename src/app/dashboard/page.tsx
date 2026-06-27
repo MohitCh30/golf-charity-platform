@@ -62,9 +62,9 @@ export default async function DashboardPage() {
     getFeaturedCharities()
   ])
   
-  const isSubscribed = !!activeSubscription && 
-    activeSubscription.status === 'active' && 
-    new Date(activeSubscription.end_date) >= new Date()
+  const isAdmin = profile?.role === 'admin'
+  const isSubscribed = isAdmin || (!!activeSubscription &&
+    activeSubscription?.status === 'active' && new Date(activeSubscription?.end_date) >= new Date())
   
   const totalWinnings = isSubscribed ? 
     (await getUserWinnings(user.id)).reduce((sum: number, w: { prize_amount_cents: number }) => sum + w.prize_amount_cents, 0) : 0

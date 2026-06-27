@@ -84,6 +84,8 @@ export async function proxy(request: NextRequest) {
 
   // Only gate the scores PAGE on GET — never API calls
   if (user && isDashboardRoute && pathname === '/dashboard/scores' && method === 'GET') {
+    const { data: adminCheck } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single()
+    if (adminCheck?.role === 'admin') return response
     const { data: subscription } = await supabaseAdmin
       .from('subscriptions')
       .select('status, end_date')
