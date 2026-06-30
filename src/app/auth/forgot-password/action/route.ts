@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const supabase = await createClient()
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password`,
+      redirectTo: 'https://golf-charity-platform-lilac.vercel.app/auth/callback?type=recovery',
     })
 
     if (error) {
